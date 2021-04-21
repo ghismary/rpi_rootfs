@@ -2,7 +2,7 @@
 
 #
 function print_usage {
-    echo "Usage: $0 command [options]"
+	echo "Usage: $0 command [options]"
 	echo "  command: "
 	echo "    download : download latest RaspiOS image"
 	echo "    create [image file]: "
@@ -16,7 +16,6 @@ function print_usage {
 	echo "      e.g. ./build_rootfs.sh run \"/usr/bin/apt autoremove\""
 	echo "        - run apt autoremove in rootfs"
 	echo "    clean : removing rootfs"
-	echo "    docker : build rpi_rootfs docker image"
 }
 
 # Global variables for this script
@@ -28,12 +27,6 @@ QEMU_ARM_STATIC=/usr/bin/qemu-arm-static
 RSYNC_OPTIONS="-hatr --delete --stats"
 UPDATE_INSTALL_SCRIPT=update_upgrade_install_package.sh
 CURRENT_WORKING_DIR=""
-
-# for docker image build
-DOCKER_BUILD_DIR="Docker"
-DOCKER_ROOTFS_TAR="../${DOCKER_BUILD_DIR}/rootfs.tar"
-DOCKER_TAR_OPTIONS="-X ../data/tar_exclude_list.txt -T ../data/tar_include_list.txt"
-GDRIVE_DL_SCRIPT="scripts/gdrive_download.sh"
 
 ###############################################################################
 #
@@ -73,12 +66,11 @@ function cleanUp {
 	fi
 }
 
-
 # this function will exist when the specified command is not found
 function is_command_installed {
 	local checking_command=$1
 	if ! [ -x "$(command -v ${checking_command})" ]; then
-  		echo "Error: ${checking_command} command is not installed "
+		echo "Error: ${checking_command} command is not installed "
 		echo "or could not found the command in PATH variable."
 		exit 1
 	fi
@@ -101,14 +93,14 @@ function extract_zip_and_mount_image {
 		echo "Unzip Resutnr value : ${ret_value}"
 		if [ ${ret_value} -ne 0 ]; then
 			echo "Error: Failed to execute unzip ${image_filename}"
-			exit 1;
+			exit 1
 		fi
 	elif [ ${extension} == "img" ]; then
 		extracted_image_filename=${image_filename}
 		echo "Using OS image file : ${extracted_image_filename}"
 	else
 		echo "Error: unsuppored RaspiOS image type ${image_filename}"
-		exit 2;
+		exit 2
 	fi
 
 	## Extracting the mount offset of RaspiOS image
@@ -123,7 +115,7 @@ function extract_zip_and_mount_image {
 	local ret_value=$?
 	if [ ${ret_value} -ne 0 ]; then
 		echo "Error: Failed to mount RaspiOS image  ${image_filename}"
-		exit 3;
+		exit 3
 	fi
 
 	# mark image mounted global flag
@@ -135,13 +127,13 @@ function copy_files_from_image {
 	local USERID=$(id -un)
 	local GROUPID=$(id -gn)
 	(
-		cd ${IMAGEFILE_MOUNT_PATH};
-		 sudo rsync ${RSYNC_OPTIONS} * ${CURRENT_WORKING_DIR}/${RPI_ROOTFS_BASE}
+		cd ${IMAGEFILE_MOUNT_PATH}
+		sudo rsync ${RSYNC_OPTIONS} * ${CURRENT_WORKING_DIR}/${RPI_ROOTFS_BASE}
 	)
 	local ret_value=$?
 	if [ ${ret_value} -ne 0 ]; then
 		echo "Error: Failed to copy from RaspiOS image"
-		exit 4;
+		exit 4
 	fi
 
 	# changing owner
@@ -149,22 +141,38 @@ function copy_files_from_image {
 	sudo /bin/chown -R ${USERID}:${GROUPID} ${RPI_ROOTFS_BASE}
 
 	# fixing links and hack library paths
-	 ./rpi_rootfs.py local ${RPI_ROOTFS_BASE}
+	./rpi_rootfs.py local ${RPI_ROOTFS_BASE}
 }
 
 function update_and_install_raspi_os_imsage {
-	mkdir -p  ${RPI_ROOTFS_BASE}/root
+	mkdir -p ${RPI_ROOTFS_BASE}/root
 	cp ./scripts/${UPDATE_INSTALL_SCRIPT} ${RPI_ROOTFS_BASE}/root
 
 	mount_chroot_syspath
 	chmod 777 ${RPI_ROOTFS_BASE}/tmp
 	cp ${QEMU_ARM_STATIC} ${RPI_ROOTFS_BASE}/${QEMU_ARM_STATIC}
 
-	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static  \
-		/bin/bash  /root/${UPDATE_INSTALL_SCRIPT}
+	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static \
+		/bin/bash /root/${UPDATE_INSTALL_SCRIPT}
 
 	# fixing links and hack library paths again
 	./rpi_rootfs.py local ${RPI_ROOTFS_BASE}
+}
+
+function create_symlinks {
+	local RPI_ROOTFS_BASE_ABS_PATH=$(echo "$(
+		cd ${RPI_ROOTFS_BASE}
+		pwd
+	)")
+
+	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/asm ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/gnu ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/bits ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/sys ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/openssl ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/arm-linux-gnueabihf/crtn.o ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/crtn.o
+	ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/arm-linux-gnueabihf/crt1.o ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/crt1.o
+	ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/arm-linux-gnueabihf/crti.o ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/crti.o
 }
 
 #
@@ -180,7 +188,8 @@ function run_chroot_cmd_apt_update {
 	mount_chroot_syspath
 	echo "CMD: Running apt update & full-upgrade & autoreove"
 	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt update
-	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt -y full-upgrade
+	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt -y dist-upgrade
+	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt -y build-essential cmake unzip pkg-config gfortran gcc g++ gperf flex texinfo gawk bison openssl pigz libncurses-dev autoconf automake tar figlet
 	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt -y autoremove
 }
 
@@ -198,42 +207,7 @@ function create_rootfs {
 	extract_zip_and_mount_image ${image_filename}
 	copy_files_from_image
 	update_and_install_raspi_os_imsage
-}
-
-function create_rootfs_tar_for_dockerbuild {
-	rm -f ${DOCKER_ROOTFS_TAR};
-	echo "Creating rootfs.tar in  ${DOCKER_ROOTFS_TAR}"
-	(
-		cd ${RPI_ROOTFS_BASE};
-		tar cf ${DOCKER_ROOTFS_TAR} ${DOCKER_TAR_OPTIONS};
-		local ret_value=$?
-		if [ ${ret_value} -ne 0 ]; then
-			echo "Error: Failed to create rootfs.tar"
-			exit 4;
-		fi
-	)
-}
-
-function build_docker_image {
-	echo "Building Docker image"
-	(
-		cd ${DOCKER_BUILD_DIR};
-		local ret_value=$?
-		docker build --rm -t rpi_rootfs:0.74 .
-		if [ ${ret_value} -ne 0 ]; then
-			echo "Error: Failed to build docker image"
-			exit 4;
-		fi
-	)
-}
-
-
-## Building Docker image
-function create_rootfs_and_build_docker_image {
-	create_rootfs_tar_for_dockerbuild
-	cp -f scripts/gdrive_download.sh ${DOCKER_BUILD_DIR}
-	cp -f PI.cmake ${DOCKER_BUILD_DIR}
-	build_docker_image
+	create_symlinks
 }
 
 function rootfs_must_not_exist {
@@ -262,8 +236,8 @@ function clean_rootfs {
 #
 ###############################################################################
 if [ "$#" -lt 1 ]; then
-	print_usage;
-    exit 1
+	print_usage
+	exit 1
 fi
 
 args=("$@")
@@ -281,34 +255,28 @@ is_command_installed qemu-arm-static # qemu-user-static package
 CURRENT_WORKING_DIR=${PWD}
 
 case ${args[0]} in
-	download)
-		is_command_installed wget
-		wget --trust-server-names https://downloads.raspberrypi.org/raspios_armhf_latest
-		;;
-	create)
-		rootfs_must_not_exist 		# exit this script when the rootfs exists
-		create_rootfs ${args[1]}
-		;;
-	update)
-		run_chroot_cmd_apt_update
-		;;
-	clean)
-		clean_rootfs
-		;;
-	run)
-		shift
-		run_chroot_command "$@"
-		;;
-	docker)
-		is_command_installed docker # check docker command is available
-		rootfs_must_exist		# exit this script when the rootfs does not exist
-		create_rootfs_and_build_docker_image
-		;;
-	*)
-		echo "command not found : ${args[0]}"
-		print_usage
-		;;
+download)
+	is_command_installed wget
+	wget --trust-server-names https://downloads.raspberrypi.org/raspios_armhf_latest
+	;;
+create)
+	rootfs_must_not_exist # exit this script when the rootfs exists
+	create_rootfs ${args[1]}
+	;;
+update)
+	run_chroot_cmd_apt_update
+	;;
+clean)
+	clean_rootfs
+	;;
+run)
+	shift
+	run_chroot_command "$@"
+	;;
+*)
+	echo "command not found : ${args[0]}"
+	print_usage
+	;;
 esac
 
 exit 0
-

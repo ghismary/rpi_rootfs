@@ -1,4 +1,0 @@
-etc/ld.so*
-cups-config*
-/usr/share
-/usr/share/pkgconfig*
