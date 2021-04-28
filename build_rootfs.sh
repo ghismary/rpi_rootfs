@@ -164,12 +164,37 @@ function create_symlinks {
 		cd ${RPI_ROOTFS_BASE}
 		pwd
 	)")
+	if [ -d "${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/asm" ]; then
+		sudo chmod 777 ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/asm
+		ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/asm/* ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/asm/
+	else
+		ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/asm ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	fi
+	if [ -d "${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/gnu" ]; then
+		sudo chmod 777 ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/gnu
+		ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/gnu/* ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/gnu/
+	else
+		ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/gnu ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	fi
+	if [ -d "${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/bits" ]; then
+		sudo chmod 777 ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/bits
+		ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/bits/* ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/bits/
+	else
+		ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/bits ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	fi
+	if [ -d "${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/sys" ]; then
+		sudo chmod 777 ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/sys
+		ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/sys/* ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/sys/
+	else
+		ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/sys ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	fi
+	if [ -d "${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/openssl" ]; then
+		sudo chmod 777 ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/openssl
+		ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/openssl/* ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/openssl/
+	else
+		ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/openssl ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
+	fi
 
-	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/asm ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
-	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/gnu ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
-	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/bits ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
-	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/sys ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
-	ln -sf -r ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/openssl ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include
 	ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/arm-linux-gnueabihf/crtn.o ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/crtn.o
 	ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/arm-linux-gnueabihf/crt1.o ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/crt1.o
 	ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/arm-linux-gnueabihf/crti.o ${RPI_ROOTFS_BASE_ABS_PATH}/usr/lib/crti.o
