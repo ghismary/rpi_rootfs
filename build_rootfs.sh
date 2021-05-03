@@ -164,6 +164,7 @@ function create_symlinks {
 		cd ${RPI_ROOTFS_BASE}
 		pwd
 	)")
+	local CUR_USER=$(whoami)
 	if [ -d "${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/asm" ]; then
 		sudo chmod 777 ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/asm
 		ln -sf ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/arm-linux-gnueabihf/asm/* ${RPI_ROOTFS_BASE_ABS_PATH}/usr/include/asm/
