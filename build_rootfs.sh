@@ -11,7 +11,7 @@ function print_usage {
 	echo "    run [command]: run raspberry pi command in rootfs"
 	echo "      [command]: should be escaped with double-quote and "
 	echo "      command need to be full path of command "
-	echo "      e.g. ./build_rootfs.sh run \"/usr/bin/apt -y libpulse-dev\""
+	echo "      e.g. ./build_rootfs.sh run \"/usr/bin/apt -y install libpulse-dev\""
 	echo "        - install libpulse-dev package in rootfs"
 	echo "      e.g. ./build_rootfs.sh run \"/usr/bin/apt autoremove\""
 	echo "        - run apt autoremove in rootfs"
@@ -215,7 +215,7 @@ function run_chroot_cmd_apt_update {
 	echo "CMD: Running apt update & full-upgrade & autoreove"
 	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt update
 	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt -y dist-upgrade
-	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt -y build-essential cmake unzip pkg-config gfortran gcc g++ gperf flex texinfo gawk bison openssl pigz libncurses-dev autoconf automake tar figlet
+	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt -y install build-essential cmake unzip pkg-config gfortran gcc g++ gperf flex texinfo gawk bison openssl pigz libncurses-dev autoconf automake tar figlet
 	sudo chroot ${RPI_ROOTFS_BASE} /usr/bin/qemu-arm-static /usr/bin/apt -y autoremove
 }
 
