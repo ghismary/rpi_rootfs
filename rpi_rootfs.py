@@ -115,7 +115,7 @@ def process_relativelinks(path):
 def symlink_force(target, link_name):
     try:
         os.symlink(target, link_name)
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.EEXIST:
             os.remove(link_name)
             os.symlink(target, link_name)
@@ -149,20 +149,20 @@ def inplace_change(filename, old_string, new_string):
     with open(filename) as f:
         s = f.read()
         if old_string not in s:
-            print '"{old_string}" not found in {filename}.'.format(**locals())
+            print('"{old_string}" not found in {filename}.'.format(**locals()))
             return
 
     try:
         # Safely write the changed content, if found in the file
         with open(filename, 'w') as f:
-            print 'Changing "{old_string}" to "{new_string}" in {filename}'.format(**locals())
+            print('Changing "{old_string}" to "{new_string}" in {filename}'.format(**locals()))
             s = s.replace(old_string, new_string)
             f.write(s)
-    except OSError, e:
+    except OSError as e:
         print("Error: %s -- target:\"%s\"" % (e, filename) )
         return
     # TODO: need to handle permission error 
-    except IOError, e:
+    except IOError as e:
         print("Error: %s -- target:\"%s\"" % (e, filename) )
         return
 
@@ -200,7 +200,7 @@ def fix_process_ld_scripts(path, filename):
 process_ld_scripts_command = [ '/bin/grep', '-rl', '--exclude=*', '--include=*.so', '\"GNU ld script\"', '{}' ]
 def process_ld_scripts(path):
     grep_command = ' '.join(process_ld_scripts_command).format(path)
-    proc = subprocess.Popen(grep_command,stdout=subprocess.PIPE, shell=True)
+    proc = subprocess.Popen(grep_command,stdout=subprocess.PIPE, shell=True, universal_newlines=True)
     for line in proc.stdout:
         #the real code does filtering here
         fix_process_ld_scripts(path, line.strip())
@@ -214,7 +214,7 @@ process_ld_so_preload_command = [ '/bin/grep', '-rl', '--exclude=*',
         '--include=*.preload', '{}', '{}' ]
 def process_ld_so_preload(path):
     grep_command = ' '.join(process_ld_so_preload_command).format('{PLATFORM}',path)
-    proc = subprocess.Popen(grep_command,stdout=subprocess.PIPE, shell=True)
+    proc = subprocess.Popen(grep_command,stdout=subprocess.PIPE, shell=True, universal_newlines=True)
     for line in proc.stdout:
         # replacing to 'v7l'
         inplace_change(line.strip(), '${PLATFORM}', 'v7l')
